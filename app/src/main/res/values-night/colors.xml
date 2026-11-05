@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand">#63A4A8</color>
+    <color name="on_brand">#00201F</color>
+    <color name="brand_container">#1F3B3D</color>
+    <color name="on_brand_container">#B8E4E6</color>
+    <color name="brand_dim">#8FCDD1</color>
+
+    <color name="bg">#101414</color>
+    <color name="on_bg">#E0E3E3</color>
+    <color name="surface">#101414</color>
+    <color name="on_surface">#E0E3E3</color>
+    <color name="surface_variant">#2A3232</color>
+    <color name="on_surface_variant">#BFC8C8</color>
+    <color name="outline">#899393</color>
+    <color name="error">#FFB4AB</color>
+    <color name="scrim">#99000000</color>
+    <color name="reader_bg">#000000</color>
+</resources>

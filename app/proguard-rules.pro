@@ -1,0 +1,6 @@
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn org.jsoup.**
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.pawviewer.core.model.** { *; }

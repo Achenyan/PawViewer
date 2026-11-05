@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_recent"
+        android:icon="@drawable/ic_recent"
+        android:title="@string/tab_recent" />
+    <item
+        android:id="@+id/nav_creators"
+        android:icon="@drawable/ic_creators"
+        android:title="@string/tab_creators" />
+    <item
+        android:id="@+id/nav_favorites"
+        android:icon="@drawable/ic_favorite"
+        android:title="@string/tab_favorites" />
+    <item
+        android:id="@+id/nav_mine"
+        android:icon="@drawable/ic_mine"
+        android:title="@string/tab_mine" />
+</menu>
