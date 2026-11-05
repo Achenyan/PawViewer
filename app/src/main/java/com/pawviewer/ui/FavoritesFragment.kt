@@ -1,4 +1,4 @@
-﻿package com.pawviewer.ui
+package com.pawviewer.ui
 
 import android.app.Activity
 import android.content.Intent
@@ -91,7 +91,7 @@ class FavoritesFragment : Fragment() {
                 throw e
             } catch (e: Exception) {
                 binding.state.showError(
-                    e.message ?: getString(R.string.error_network),
+                    Util.netMessage(requireContext(), e),
                     getString(R.string.retry),
                 ) { load() }
             } finally {

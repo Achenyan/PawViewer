@@ -1,4 +1,4 @@
-﻿package com.pawviewer.ui
+package com.pawviewer.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.pawviewer.R
+import com.pawviewer.core.PostFilter
 import com.pawviewer.core.Prefs
 import com.pawviewer.core.Repo
 import com.pawviewer.core.Util
@@ -39,6 +40,7 @@ class CreatorFragment : Fragment(), MainActivity.Titled {
     private var loading = false
     private var end = false
     private var selectedTag = ""
+    private var filter = PostFilter()
     private var favorited = false
 
     override fun onCreateView(
@@ -82,6 +84,14 @@ class CreatorFragment : Fragment(), MainActivity.Titled {
         binding.refresh.setOnRefreshListener { reload() }
 
         binding.favButton.setOnClickListener { toggleFavorite() }
+
+        binding.btnFilter.setOnClickListener {
+            FilterDialog.show(requireContext(), filter) { next ->
+                filter = next
+                adapter.submitList(filter.apply(items))
+                updateEmptyState()
+            }
+        }
 
         loadHeader()
         reload()
@@ -166,13 +176,35 @@ class CreatorFragment : Fragment(), MainActivity.Titled {
                     getString(if (target) R.string.favorite_added else R.string.favorite_removed)
                 )
             } else {
-                Util.toast(requireContext(), getString(R.string.error_network))
+                Util.toast(requireContext(), getString(R.string.error_network_hint))
             }
         }
     }
 
     private fun updateFavoriteButton() {
         binding.favButton.setText(if (favorited) R.string.favorite_remove else R.string.favorite_add)
+    }
+
+    /** 空列表时的文案：按时间筛选出的空白给彩蛋。 */
+    private fun updateEmptyState() {
+        val b = _binding ?: return
+        if (items.isEmpty()) {
+            if (end) b.state.showEmpty(getString(R.string.empty)) else b.state.hideState()
+            return
+        }
+        if (filter.apply(items).isNotEmpty()) {
+            b.state.hideState()
+            return
+        }
+        when (filter.dateMode) {
+            com.pawviewer.core.PostFilter.DATE_AFTER ->
+                b.state.showEmptyBrand(getString(R.string.egg_future))
+
+            com.pawviewer.core.PostFilter.DATE_BEFORE ->
+                b.state.showEmptyBrand(getString(R.string.egg_past))
+
+            else -> b.state.showEmpty(getString(R.string.empty))
+        }
     }
 
     private fun reload() {
@@ -202,18 +234,14 @@ class CreatorFragment : Fragment(), MainActivity.Titled {
                     }
                     if (page.size < 50) end = true
                 }
-                adapter.submitList(items.toList())
-                if (items.isEmpty() && end) {
-                    binding.state.showEmpty(getString(R.string.empty))
-                } else {
-                    binding.state.hideState()
-                }
+                adapter.submitList(filter.apply(items))
+                updateEmptyState()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 if (items.isEmpty()) {
                     binding.state.showError(
-                        e.message ?: getString(R.string.error_network),
+                        Util.netMessage(requireContext(), e),
                         getString(R.string.retry),
                     ) { reload() }
                 } else {

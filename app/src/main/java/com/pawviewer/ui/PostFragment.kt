@@ -50,7 +50,7 @@ class PostFragment : Fragment(), MainActivity.Titled {
         val initial = arguments?.getString(ARG_POST)
             ?.let { runCatching { Gson().fromJson(it, Post::class.java) }.getOrNull() }
         if (initial == null) {
-            binding.state.showError(getString(R.string.error_network), getString(R.string.back)) {
+            binding.state.showError(getString(R.string.error_network_hint), getString(R.string.back)) {
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
             return
@@ -75,7 +75,7 @@ class PostFragment : Fragment(), MainActivity.Titled {
             } catch (e: Exception) {
                 if (_binding == null) return@launch
                 binding.state.showError(
-                    e.message ?: getString(R.string.error_network),
+                    Util.netMessage(requireContext(), e),
                     getString(R.string.retry),
                 ) { loadDetail(initial) }
             }
@@ -172,19 +172,34 @@ class PostFragment : Fragment(), MainActivity.Titled {
                 MediaKind.OTHER -> ""
             }
             row.root.setOnClickListener {
-                if (item.isImage) {
-                    val index = images.indexOfFirst { it.key == item.key }
-                    openReader(p, images, if (index >= 0) index else 0)
-                } else {
-                    openInBrowser(p)
+                when {
+                    item.isImage -> {
+                        val index = images.indexOfFirst { it.key == item.key }
+                        openReader(p, images, if (index >= 0) index else 0)
+                    }
+
+                    item.kind == MediaKind.VIDEO -> playVideo(p, item)
+                    else -> openInBrowser(p)
                 }
             }
             binding.attachmentContainer.addView(row.root)
         }
     }
 
-    private fun openInBrowser(p: Post) {
-        runCatching {
+    /** 视频附件：先解析签名直链，再用内置播放器播（走 Cronet，免代理）。 */
+    private fun playVideo(p: Post, item: MediaItem) {
+        context?.let { Util.toast(it, getString(R.string.loading)) }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val url = runCatching { MediaResolver.fullUrl(p, item) }.getOrNull()
+            if (url.isNullOrBlank()) {
+                if (_binding != null) Util.toast(requireContext(), getString(R.string.player_failed))
+                return@launch
+            }
+            PlayerActivity.start(requireContext(), url, item.name)
+        }
+    }
+
+    private fun openInBrowser(p: Post) {        runCatching {
             startActivity(
                 android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(p.webUrl))
             )

@@ -18,6 +18,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.pawviewer.R
 import com.pawviewer.core.Prefs
+import com.pawviewer.core.Util
 import com.pawviewer.core.model.Post
 import com.pawviewer.core.net.Http
 import com.pawviewer.databinding.ActivityMainBinding
@@ -284,6 +285,41 @@ class MainActivity : AppCompatActivity() {
     private fun openPostLink(service: String, creatorId: String, postId: String) {
         val post = Post(id = postId, user = creatorId, service = service, title = "")
         pushDetail(PostFragment.newInstance(post), getString(R.string.read))
+    }
+
+    /**
+     * 在界面任意位置向右滑也能拉出抽屉（默认只有从屏幕左缘滑）。
+     * 这里只是旁听事件、不消费，所以不影响点击和上下滚动。
+     */
+    private val swipeDetector by lazy {
+        android.view.GestureDetector(this, object : android.view.GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: android.view.MotionEvent): Boolean = true
+
+            override fun onFling(
+                e1: android.view.MotionEvent?,
+                e2: android.view.MotionEvent,
+                velocityX: Float,
+                velocityY: Float,
+            ): Boolean {
+                val start = e1 ?: return false
+                if (!::binding.isInitialized) return false
+                val dx = e2.x - start.x
+                val dy = e2.y - start.y
+                val threshold = Util.dp(this@MainActivity, 56)
+                if (dx > threshold && dx > kotlin.math.abs(dy) * 1.5f &&
+                    !binding.drawer.isDrawerOpen(androidx.core.view.GravityCompat.START)
+                ) {
+                    binding.drawer.openDrawer(androidx.core.view.GravityCompat.START)
+                    return true
+                }
+                return false
+            }
+        })
+    }
+
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
+        runCatching { swipeDetector.onTouchEvent(ev) }
+        return super.dispatchTouchEvent(ev)
     }
 
     interface Titled {

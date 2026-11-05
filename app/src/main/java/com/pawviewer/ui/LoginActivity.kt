@@ -71,15 +71,21 @@ class LoginActivity : AppCompatActivity() {
         binding.status.text = getString(R.string.login_checking)
 
         lifecycleScope.launch {
-            val ok = runCatching { Repo.login(user, pass) }.getOrDefault(false)
+            val result = runCatching { Repo.login(user, pass) }
             binding.btnLogin.isEnabled = true
             binding.progress.visibility = View.GONE
-            if (ok) {
-                Util.toast(this@LoginActivity, getString(R.string.login_success))
-                setResult(RESULT_OK)
-                finish()
-            } else {
-                binding.status.text = getString(R.string.login_bad_credentials)
+            when {
+                result.getOrNull() == true -> {
+                    Util.toast(this@LoginActivity, getString(R.string.login_success))
+                    setResult(RESULT_OK)
+                    finish()
+                }
+
+                result.isFailure -> {
+                    binding.status.text = Util.netMessage(this@LoginActivity, result.exceptionOrNull())
+                }
+
+                else -> binding.status.text = getString(R.string.login_bad_credentials)
             }
         }
     }

@@ -55,6 +55,20 @@
             android:theme="@style/Theme.PawViewer.Reader" />
 
         <activity
+            android:name=".ui.LocalPostActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode" />
+
+        <activity
+            android:name=".ui.PlayerActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+            android:theme="@style/Theme.PawViewer.Reader" />
+
+        <activity
+            android:name=".ui.LocalGalleryActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+            android:theme="@style/Theme.PawViewer.Reader" />
+
+        <activity
             android:name=".ui.LoginActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:exported="false" />

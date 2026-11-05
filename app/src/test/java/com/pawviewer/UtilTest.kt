@@ -44,4 +44,17 @@ class UtilTest {
         assertEquals("fallback.jpg", Util.safeFileName("   ", "fallback.jpg"))
         assertEquals("_x_y.jpg", Util.safeFileName("../x:y.jpg", "f.jpg"))
     }
+    @Test
+    fun fuzzySearchToleratesOneTypoButRanksBehind() {
+        assertEquals(0, Util.fuzzyScore("Alex pack", "alex"))
+        assertEquals(1, Util.fuzzyScore("alex", "aiex"))
+        assertEquals(null, Util.fuzzyScore("alex", "zzzz"))
+    }
+
+    @Test
+    fun levenshteinBasics() {
+        assertEquals(0, Util.levenshtein("alex", "alex"))
+        assertEquals(1, Util.levenshtein("alex", "aiex"))
+        assertEquals(4, Util.levenshtein("", "alex"))
+    }
 }

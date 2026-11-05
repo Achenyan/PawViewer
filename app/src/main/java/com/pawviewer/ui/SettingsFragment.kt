@@ -182,6 +182,24 @@ class SettingsFragment : Fragment() {
             Util.toast(requireContext(), getString(R.string.settings_cleared))
         }
 
+        binding.btnCleanOrphan.setOnClickListener {
+            val removed = with(requireContext()) {
+                val root = getExternalFilesDir("downloads") ?: filesDir
+                val known = com.pawviewer.core.db.Store.downloads(this).map { it.dir }.toSet()
+                var count = 0
+                root.listFiles()?.forEach { serviceDir ->
+                    serviceDir.listFiles()?.forEach { postDir ->
+                        if (!known.contains(postDir.absolutePath)) {
+                            if (postDir.deleteRecursively()) count++
+                        }
+                    }
+                    if (serviceDir.listFiles().isNullOrEmpty()) serviceDir.delete()
+                }
+                count
+            }
+            Util.toast(requireContext(), getString(R.string.settings_clean_orphan_done, removed))
+        }
+
         binding.btnReset.setOnClickListener {
             Prefs.userAgent = Prefs.DEFAULT_UA
             Prefs.strictRate = false

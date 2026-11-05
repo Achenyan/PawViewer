@@ -112,21 +112,16 @@ object PawApi {
      */
     suspend fun login(username: String, password: String): Boolean {
         runCatching { Http.getText("${Http.HOST}/account/login?location=/", Http.HOST, Lane.API) }
-        runCatching {
-            Http.postForm(
-                "${Http.HOST}/account/login",
-                mapOf(
-                    "location" to "/",
-                    "username" to username,
-                    "password" to password,
-                ),
-            )
-        }
-        val cookies = Http.cookieHeader()
-        android.util.Log.d("PawViewer", "login post done, jar=${cookies.take(90)}")
-        val ok = checkLogin()
-        android.util.Log.d("PawViewer", "login checkLogin=$ok")
-        return ok
+        // 网络异常要往上抛，界面才能区分「网络失败」和「密码错误」
+        Http.postForm(
+            "${Http.HOST}/account/login",
+            mapOf(
+                "location" to "/",
+                "username" to username,
+                "password" to password,
+            ),
+        )
+        return checkLogin()
     }
 
     // ---------------------------------------------------------------- html

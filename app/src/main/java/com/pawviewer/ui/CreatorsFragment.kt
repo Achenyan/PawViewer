@@ -99,7 +99,7 @@ class CreatorsFragment : Fragment() {
                 throw e
             } catch (e: Exception) {
                 val binding = _binding ?: return@launch
-                binding.indexHint.text = e.message ?: getString(R.string.error_network)
+                binding.indexHint.text = Util.netMessage(requireContext(), e)
                 binding.indexButton.visibility = View.VISIBLE
                 binding.indexProgress.visibility = View.GONE
             } finally {

@@ -49,7 +49,7 @@ class LiveApiTest {
 
         // 原图直链必须来自帖子网页里的签名表
         val html = PawApi.postPageHtml(post.service.orEmpty(), post.id.orEmpty())
-        val signed = PawHtml.extractSigned(html)
+        val signed = PawHtml.extractSigned(html).byName
         println("post=${post.key} images=${images.size} signed=${signed.size}")
 
         val first = images.first()

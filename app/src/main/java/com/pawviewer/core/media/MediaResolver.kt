@@ -28,7 +28,7 @@ object MediaResolver {
     private val VIDEO_EXT = setOf("mp4", "webm", "mov", "m4v", "mkv")
     private val ARCHIVE_EXT = setOf("zip", "7z", "rar", "tar", "gz")
 
-    private data class Entry(val expiresAt: Long, val map: Map<String, PawHtml.Signed>)
+    private data class Entry(val expiresAt: Long, val table: PawHtml.SignedTable)
 
     private val cache = ConcurrentHashMap<String, Entry>()
 
@@ -104,25 +104,31 @@ object MediaResolver {
     fun images(post: Post): List<MediaItem> = items(post).filter { it.isImage }
 
     /** 帖子网页里的签名表，带过期时间，过期或 403 时强制刷新。 */
-    suspend fun signedMap(post: Post, force: Boolean = false): Map<String, PawHtml.Signed> {
+    suspend fun signedTable(post: Post, force: Boolean = false): PawHtml.SignedTable {
         val now = System.currentTimeMillis()
         val cached = cache[post.key]
-        if (!force && cached != null && cached.expiresAt > now) return cached.map
+        if (!force && cached != null && cached.expiresAt > now) return cached.table
 
         val html = PawApi.postPageHtml(post.service.orEmpty(), post.id.orEmpty())
-        val map = PawHtml.extractSigned(html)
-        val minExpirySec = map.values.mapNotNull { it.expiresAt.takeIf { e -> e > 0 } }.minOrNull()
+        val table = PawHtml.extractSigned(html)
+        val all = table.byName.values + table.hlsByHash.values
+        val minExpirySec = all.mapNotNull { it.expiresAt.takeIf { e -> e > 0 } }.minOrNull()
         val expiresAt = if (minExpirySec != null) minExpirySec * 1000L - 120_000L
         else now + 30 * 60_000L
-        cache[post.key] = Entry(expiresAt, map)
-        return map
+        cache[post.key] = Entry(expiresAt, table)
+        return table
     }
 
     suspend fun fullUrl(post: Post, item: MediaItem, force: Boolean = false): String? {
         item.directUrl?.let { return it }
+        // 有 path 的附件优先走 file.pawchive.pw（Cloudflare，支持 HTTP/3），
+        // 只有视频这种没有 path 的才回落到 t1 的签名直链。
+        if (item.kind == MediaKind.IMAGE && !item.path.isNullOrBlank()) {
+            return directUrl(item.path)
+        }
         val name = item.signedName ?: item.path?.substringAfterLast('/') ?: return null
-        val map = runCatching { signedMap(post, force) }.getOrDefault(emptyMap())
-        return map[name]?.url
+        val table = runCatching { signedTable(post, force) }.getOrNull() ?: return null
+        return if (item.kind == MediaKind.VIDEO) table.videoUrlFor(name) else table.urlFor(name)
     }
 
     /** 阅读器用：优先原图，拿不到就退回缩略图，保证总有东西可看。 */

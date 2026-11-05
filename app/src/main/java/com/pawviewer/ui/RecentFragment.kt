@@ -1,4 +1,4 @@
-﻿package com.pawviewer.ui
+package com.pawviewer.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.pawviewer.R
+import com.pawviewer.core.PostFilter
 import com.pawviewer.core.Prefs
 import com.pawviewer.core.Repo
 import com.pawviewer.core.Util
@@ -35,6 +36,7 @@ class RecentFragment : Fragment() {
     private var end = false
     private var query = ""
     private var service = ""
+    private var filter = PostFilter()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,6 +75,13 @@ class RecentFragment : Fragment() {
         }
 
         buildChips()
+        binding.btnFilter.setOnClickListener {
+            FilterDialog.show(requireContext(), filter) { next ->
+                filter = next
+                adapter.submitList(filter.apply(items))
+                updateEmptyState()
+            }
+        }
         reload()
     }
 
@@ -117,6 +126,28 @@ class RecentFragment : Fragment() {
     private fun gridSpan(): Int =
         (resources.configuration.screenWidthDp / 180).coerceAtLeast(2)
 
+    /** 空列表时的文案：按时间筛选出的空白给彩蛋。 */
+    private fun updateEmptyState() {
+        val b = _binding ?: return
+        if (items.isEmpty()) {
+            if (end) b.state.showEmpty(getString(R.string.empty)) else b.state.hideState()
+            return
+        }
+        if (filter.apply(items).isNotEmpty()) {
+            b.state.hideState()
+            return
+        }
+        when (filter.dateMode) {
+            com.pawviewer.core.PostFilter.DATE_AFTER ->
+                b.state.showEmptyBrand(getString(R.string.egg_future))
+
+            com.pawviewer.core.PostFilter.DATE_BEFORE ->
+                b.state.showEmptyBrand(getString(R.string.egg_past))
+
+            else -> b.state.showEmpty(getString(R.string.empty))
+        }
+    }
+
     private fun reload() {
         items.clear()
         keys.clear()
@@ -149,18 +180,14 @@ class RecentFragment : Fragment() {
                     if (page.size < 50) end = true
                     if (items.isNotEmpty() || end) break
                 }
-                adapter.submitList(items.toList())
-                if (items.isEmpty()) {
-                    if (end) binding.state.showEmpty(getString(R.string.empty)) else binding.state.hideState()
-                } else {
-                    binding.state.hideState()
-                }
+                adapter.submitList(filter.apply(items))
+                updateEmptyState()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 if (items.isEmpty()) {
                     binding.state.showError(
-                        e.message ?: getString(R.string.error_network),
+                        Util.netMessage(requireContext(), e),
                         getString(R.string.retry),
                     ) { reload() }
                 } else {

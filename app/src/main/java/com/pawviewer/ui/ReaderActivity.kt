@@ -85,7 +85,7 @@ class ReaderActivity : AppCompatActivity() {
         verticalMode = mode == Prefs.READER_VERTICAL
 
         // 先把「文件名 → 签名直链」的表预热好，避免每张图各触发一次网页抓取
-        lifecycleScope.launch { runCatching { MediaResolver.signedMap(currentPost) } }
+        lifecycleScope.launch { runCatching { MediaResolver.signedTable(currentPost) } }
 
         if (verticalMode) {
             setupVertical(currentPost)
@@ -349,6 +349,7 @@ private class ReaderAdapter(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val jobs = HashMap<Int, Job>()
+    private var warnedOnce = false
 
     class Holder(val frame: FrameLayout, val image: ZoomImageView, val progress: ProgressBar) :
         RecyclerView.ViewHolder(frame)
@@ -402,6 +403,16 @@ private class ReaderAdapter(
                 holder.image.setImageBitmap(bitmap)
             } else {
                 holder.image.setImageResource(android.R.drawable.ic_menu_report_image)
+                if (!warnedOnce) {
+                    warnedOnce = true
+                    runCatching {
+                        android.widget.Toast.makeText(
+                            holder.frame.context,
+                            R.string.reader_failed_tip,
+                            android.widget.Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                }
             }
         }
     }
@@ -449,6 +460,7 @@ private class VerticalAdapter(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val jobs = HashMap<Int, Job>()
+    private var warnedOnce = false
 
     class Holder(val frame: FrameLayout, val image: ImageView, val progress: ProgressBar) :
         RecyclerView.ViewHolder(frame)
@@ -500,6 +512,16 @@ private class VerticalAdapter(
                 holder.image.setImageBitmap(bitmap)
             } else {
                 holder.image.setImageResource(android.R.drawable.ic_menu_report_image)
+                if (!warnedOnce) {
+                    warnedOnce = true
+                    runCatching {
+                        android.widget.Toast.makeText(
+                            holder.frame.context,
+                            R.string.reader_failed_tip,
+                            android.widget.Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                }
             }
         }
     }

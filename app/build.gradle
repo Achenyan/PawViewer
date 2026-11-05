@@ -17,8 +17,8 @@ android {
         applicationId "com.pawviewer"
         minSdk 26
         targetSdk 35
-        versionCode 5
-        versionName "1.4.0"
+        versionCode 12
+        versionName "1.1.0"
         vectorDrawables.useSupportLibrary = true
         resourceConfigurations += ['zh', 'en']
         ndk {
@@ -112,6 +112,12 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
     implementation 'org.chromium.net:cronet-embedded:143.7445.0'
+
+    def media3 = '1.7.1'
+    implementation "androidx.media3:media3-exoplayer:$media3"
+    implementation "androidx.media3:media3-ui:$media3"
+    implementation "androidx.media3:media3-datasource-cronet:$media3"
+    implementation "androidx.media3:media3-exoplayer-hls:$media3"
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.16.1'
