@@ -121,11 +121,26 @@ ui/
 
 ## 5. 构建
 
-```bat
-set GRADLE_USER_HOME=D:\work_zone\tools\gradle-home
-set JAVA_HOME=C:\Program Files\Microsoft\jdk-17.0.13.11-hotspot
-D:\work_zone\tools\gradle-9.5.0\bin\gradle.bat -p D:\work_zone\pawviewer :app:assembleRelease
+需要 JDK 17+ 与 Android SDK（platform 35 / build-tools 35）。
+
+```bash
+# 1) 指定 SDK 路径（或在 Android Studio 里打开项目）
+echo "sdk.dir=/path/to/Android/Sdk" > local.properties
+
+# 2) 打包
+./gradlew assembleRelease        # Windows: gradlew.bat assembleRelease
 ```
+
+签名：仓库**不包含**任何密钥。要出正式包，自己生成一个并把参数写进 `keystore.properties`（该文件已被 `.gitignore` 忽略）：
+
+```properties
+storeFile=keystore/your.jks
+storePassword=******
+keyAlias=your_alias
+keyPassword=******
+```
+
+没有 `keystore.properties` 时，`assembleRelease` 会产出未签名包；日常调试用 `./gradlew assembleDebug` 即可。
 
 AGP 9.3.1 / Kotlin 2.2.10 / Gradle 9.5.0。依赖：OkHttp、Cronet-embedded、Gson、jsoup、coroutines、Material、AndroidX。
 
