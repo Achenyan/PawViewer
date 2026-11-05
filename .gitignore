@@ -24,3 +24,11 @@ keystore.properties
 # 系统
 .DS_Store
 Thumbs.db
+# AI / agent 指令文件（不要提交）
+AGENTS.md
+AGENT.md
+agent.md
+CLAUDE.md
+.cursorrules
+.cursor/
+.github/copilot-instructions.md
