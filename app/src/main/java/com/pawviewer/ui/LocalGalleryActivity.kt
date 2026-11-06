@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -19,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.pawviewer.R
+import com.pawviewer.core.Prefs
 import com.pawviewer.core.Util
 import com.pawviewer.databinding.ActivityLocalGalleryBinding
 import com.pawviewer.ui.widget.ZoomImageView
@@ -80,6 +82,42 @@ class LocalGalleryActivity : AppCompatActivity() {
     private fun isMedia(name: String): Boolean {
         val ext = name.substringAfterLast('.', "").lowercase()
         return ext in setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "avif", "jfif", "mp4", "webm", "mov", "m4v", "mkv")
+    }
+
+    /**
+     * 音量键 / 翻页键翻页，行为与在线阅读器一致。
+     * 关掉「音量键翻页」开关后不再拦截，音量键恢复成调音量。
+     */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (!Prefs.volumeKeys) return super.onKeyDown(keyCode, event)
+        when (keyCode) {
+            KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_PAGE_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                turnPage(1)
+                return true
+            }
+
+            KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_PAGE_UP, KeyEvent.KEYCODE_DPAD_LEFT -> {
+                turnPage(-1)
+                return true
+            }
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (Prefs.volumeKeys &&
+            (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+        ) {
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
+    }
+
+    private fun turnPage(delta: Int) {
+        if (files.isEmpty() || !::binding.isInitialized) return
+        val current = binding.pager.currentItem
+        val target = (current + delta).coerceIn(0, files.size - 1)
+        if (target != current) binding.pager.setCurrentItem(target, true)
     }
 
     companion object {
