@@ -78,7 +78,7 @@ class RecentFragment : Fragment() {
         binding.btnFilter.setOnClickListener {
             FilterDialog.show(requireContext(), filter) { next ->
                 filter = next
-                adapter.submitList(filter.apply(items))
+                adapter.submitList(filter.apply(items).toList())
                 updateEmptyState()
             }
         }
@@ -149,12 +149,13 @@ class RecentFragment : Fragment() {
     }
 
     private fun reload() {
+        // 先把 adapter 清空，再动 items，避免 diff 期间改动同一个列表
+        adapter.submitList(emptyList())
         items.clear()
         keys.clear()
         offset = 0
         end = false
         loading = false
-        adapter.submitList(emptyList())
         binding.state.showLoading(getString(R.string.loading))
         loadMore()
     }
@@ -180,7 +181,7 @@ class RecentFragment : Fragment() {
                     if (page.size < 50) end = true
                     if (items.isNotEmpty() || end) break
                 }
-                adapter.submitList(filter.apply(items))
+                adapter.submitList(filter.apply(items).toList())
                 updateEmptyState()
             } catch (e: CancellationException) {
                 throw e

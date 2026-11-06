@@ -32,7 +32,15 @@ data class PostFilter(
         return true
     }
 
-    fun apply(list: List<Post>): List<Post> = if (!isActive) list else list.filter { matches(it) }
+    /**
+     * 始终返回**新的**列表。
+     *
+     * 调用方（列表页）会把结果直接交给 ListAdapter，而 ListAdapter 内部是异步 diff；
+     * 如果这里在「未启用筛选」时把原 ArrayList 原样返回，调用方之后 clear()/add()
+     * 就会在 diff 过程中改动同一个实例，导致列表崩溃。
+     */
+    fun apply(list: List<Post>): List<Post> =
+        if (!isActive) ArrayList(list) else list.filter { matches(it) }
 
     companion object {
         const val TYPE_ALL = 0

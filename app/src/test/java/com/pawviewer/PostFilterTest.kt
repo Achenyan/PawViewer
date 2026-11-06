@@ -70,4 +70,13 @@ class PostFilterTest {
         assertFalse(Util.hasAiTag(post("ai pack", "2026-11-04T00:00:00")))
         assertFalse(Util.hasAiTag(post("AIR pack", "2026-11-04T00:00:00")))
     }
+    @Test
+    fun applyReturnsNewList() {
+        // ListAdapter 内部异步 diff，绝不能把调用方的可变列表原样交出去
+        val source = arrayListOf(imagePost, videoPost)
+        val out = PostFilter().apply(source)
+        assertTrue(out !== source)
+        source.clear()
+        assertEquals(2, out.size)
+    }
 }

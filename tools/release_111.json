@@ -1,0 +1,7 @@
+{
+  "tag_name": "1.1.1",
+  "name": "PawViewer 1.1.1",
+  "body": "## 修复\n\n- **修复「最新」页崩溃**：下拉刷新、切换服务标签（如 Patreon / 全部）、搜索时可能闪退。原因是列表数据交给 RecyclerView 后又原地清空/追加，与后台 diff 撞车；现在提交的永远是快照。\n\n如果你已经装了 1.1.0，建议升级到这个版本。",
+  "draft": false,
+  "prerelease": false
+}
